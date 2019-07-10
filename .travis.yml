@@ -1,0 +1,42 @@
+sudo: required
+
+dist: trusty
+
+language: python
+
+stages:
+  - lint
+  - test
+
+jobs:
+  include:
+    - stage: lint
+      env:
+        - JOB=lint
+      install:
+        - pip install -r requirements.txt
+        - pip install flake8
+      script:
+        - flake8 publab test setup.py
+
+    - stage: test
+      services:
+        - docker
+      env:
+        - JOB=test_python2
+        - IMG=riga/py-base:2
+      install:
+        - docker pull $IMG
+      script:
+        - docker run -t --rm -v `pwd`:/root/publab -w /root/publab $IMG bash -c "pip install -r requirements.txt && python -m unittest tests"
+
+    - stage: test
+      services:
+        - docker
+      env:
+        - JOB=test_python3
+        - IMG=riga/py-base:3
+      install:
+        - docker pull $IMG
+      script:
+        - docker run -t --rm -v `pwd`:/root/publab -w /root/publab $IMG bash -c "pip install -r requirements.txt && python -m unittest tests"
